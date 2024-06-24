@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Location Distance To KPU</title>
+    <link rel="stylesheet" href="styles.css">
+    <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css" />
+</head>
+<body>
+    <div id="map"></div>
+    <div id="distance"></div>
+
+    <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
+    <script src="app.js"></script>
+</body>
+</html>
+
+<script>
+    //longtitude and latitude of KPU Library Surrey from google maps
+    const kpuSurreyLibrary = {
+    lat: 49.13231,
+    lng: -122.87143
+};
+
+//initialize the map
+const map = L.map('map').setView([49.1334, -122.8896], 13);
+
+//set up the open street map layer
+L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+    maxZoom: 19,
+    attribution: '© OpenStreetMap'
+}).addTo(map);
+
+//set/display location for the KPU Surrey Library
+const kpuMarker = L.marker([kpuSurreyLibrary.lat, kpuSurreyLibrary.lng])
+    .addTo(map)
+    .bindPopup('KPU Surrey Library')
+    .openPopup();
+
+//Calculate distance
+//Haversine formula used
+function haversine(lat1, lon1, lat2, lon2) {
+    const R = 6371; // Radius of the Earth in kilometers
+    const dLat = (lat2 - lat1) * Math.PI / 180;
+    const dLon = (lon2 - lon1) * Math.PI / 180;
+    const a = 
+        0.5 - Math.cos(dLat)/2 + 
+        Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) * 
+        (1 - Math.cos(dLon))/2;
+
+    return R * 2 * Math.asin(Math.sqrt(a));
+}
+
+// Get user's current location
+if (navigator.geolocation) {
+    navigator.geolocation.getCurrentPosition(position => {
+        const userLat = position.coords.latitude;
+        const userLng = position.coords.longitude;
+
+        // Add user's location marker to the map
+        const userMarker = L.marker([userLat, userLng])
+            .addTo(map)
+            .openPopup();
+
+        //Calculate distance
+        const distance = haversine(userLat, userLng, kpuSurreyLibrary.lat, kpuSurreyLibrary.lng);
+        document.getElementById('distance').innerHTML = `Distance to KPU Surrey Library: ${distance.toFixed(2)} km`;
+    });
+}
+</script>
